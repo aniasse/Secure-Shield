@@ -283,15 +283,22 @@ export async function buildApp(
   app.get("/health", async () => ({ status: "ok" }));
 
   // Indicators
-  const indicatorSchema = z.object({
-    type: z.enum(["ip", "domain", "hash", "url", "email"]),
-    value: z.string(),
-    reputation: z.enum(["malicious", "suspicious", "clean", "unknown"]),
-    confidence: z.number().min(0).max(100),
-    sources: z.array(z.string()),
-    tags: z.array(z.string()),
-    metadata: z.record(z.unknown()).optional(),
-  });
+  const indicatorSchema = {
+    type: "object",
+    required: ["type", "value", "reputation", "confidence", "sources", "tags"],
+    properties: {
+      type: { type: "string", enum: ["ip", "domain", "hash", "url", "email"] },
+      value: { type: "string" },
+      reputation: {
+        type: "string",
+        enum: ["malicious", "suspicious", "clean", "unknown"],
+      },
+      confidence: { type: "number", minimum: 0, maximum: 100 },
+      sources: { type: "array", items: { type: "string" } },
+      tags: { type: "array", items: { type: "string" } },
+      metadata: { type: "object" },
+    },
+  };
 
   app.post<{ Body: z.infer<typeof indicatorSchema> }>(
     "/api/v1/threat-intel/indicators",

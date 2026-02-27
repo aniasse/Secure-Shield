@@ -54,6 +54,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: siem
     ports:
       - "8080:8080"
     environment:
@@ -72,6 +73,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: threat-intel
     ports:
       - "8081:8081"
     environment:
@@ -85,6 +87,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: soar
     ports:
       - "8082:8082"
     environment:
@@ -100,6 +103,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: ml-detector
     ports:
       - "8083:8083"
     environment:
@@ -115,6 +119,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: sandbox
     ports:
       - "8084:8084"
     environment:
@@ -128,6 +133,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: fraud-detector
     ports:
       - "8085:8085"
     environment:
@@ -143,6 +149,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: academy
     ports:
       - "8086:8086"
     environment:
@@ -157,6 +164,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: llm-analyzer
     ports:
       - "8090:8090"
     environment:
@@ -173,6 +181,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: threat-hunter
     ports:
       - "8091:8091"
     environment:
@@ -186,6 +195,7 @@ services:
     build:
       context: ./packages/soc-core
       dockerfile: Dockerfile
+      target: predictive-analytics
     ports:
       - "8092:8092"
     environment:

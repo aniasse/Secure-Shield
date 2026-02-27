@@ -171,9 +171,9 @@ services:
       - PORT=8090
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - LLM_PROVIDER=openai
+      - LLM_PROVIDER=gemini
       - LLM_API_KEY=${LLM_API_KEY}
-      - LLM_MODEL=gpt-4
+      - LLM_MODEL=gemini-2.0-flash
     depends_on:
       - redis
 

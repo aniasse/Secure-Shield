@@ -175,6 +175,8 @@ Generate 3 different hypotheses if possible. Respond in JSON array format.`;
           prompt,
           endpoint || "http://localhost:11434",
         );
+      } else if (provider === "gemini") {
+        return await this.callGemini(prompt, apiKey, model);
       }
 
       return this.getSimulatedResponse(prompt);
@@ -244,6 +246,36 @@ Generate 3 different hypotheses if possible. Respond in JSON array format.`;
 
     const data = await response.json();
     return data.response || "";
+  }
+
+  private async callGemini(
+    prompt: string,
+    apiKey: string,
+    model: string,
+  ): Promise<string> {
+    const modelName = model || "gemini-2.0-flash";
+    log.info(
+      { model: modelName, prompt: prompt.slice(0, 100) },
+      "Calling Gemini API",
+    );
+    const response = await fetch(
+      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: prompt }] }],
+          generationConfig: {
+            temperature: 0.3,
+            maxOutputTokens: 2000,
+          },
+        }),
+      },
+    );
+
+    const data = await response.json();
+    log.info({ data: JSON.stringify(data).slice(0, 500) }, "Gemini response");
+    return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   }
 
   private getSimulatedResponse(prompt: string): string {

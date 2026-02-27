@@ -253,28 +253,24 @@ Generate 3 different hypotheses if possible. Respond in JSON array format.`;
     apiKey: string,
     model: string,
   ): Promise<string> {
-    const modelName = model || "gemini-2.0-flash";
-    log.info(
-      { model: modelName, prompt: prompt.slice(0, 100) },
-      "Calling Gemini API",
-    );
+    const modelName = model || "gemini-flash-latest";
+    log.info({ model: modelName }, "Calling Gemini API");
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           contents: [{ parts: [{ text: prompt }] }],
-          generationConfig: {
-            temperature: 0.3,
-            maxOutputTokens: 2000,
-          },
         }),
       },
     );
 
     const data = await response.json();
-    log.info({ data: JSON.stringify(data).slice(0, 500) }, "Gemini response");
+    if (data.error) {
+      log.error({ error: data.error }, "Gemini API error");
+      return "";
+    }
     return data.candidates?.[0]?.content?.parts?.[0]?.text || "";
   }
 

@@ -47,6 +47,10 @@ FROM base AS predictive-analytics
 EXPOSE 8092
 CMD ["bun", "run", "src/ai/predictive-analytics.ts"]
 
+FROM base AS cyber-agent
+EXPOSE 8095
+CMD ["bun", "run", "src/ai/cyber-agent.ts"]
+
 FROM base AS reports
 EXPOSE 8087
 CMD ["bun", "run", "src/reports/index.ts"]

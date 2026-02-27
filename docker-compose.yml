@@ -202,6 +202,25 @@ services:
       - PORT=8092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - AUTO_BLOCK=true
+      - THRESHOLD=70
+    depends_on:
+      - redis
+
+  cyber-agent:
+    build:
+      context: ./packages/soc-core
+      dockerfile: Dockerfile
+      target: cyber-agent
+    ports:
+      - "8095:8095"
+    environment:
+      - PORT=8095
+      - REDIS_HOST=redis
+      - REDIS_PORT=6379
+      - SCAN_INTERVAL=30000
+      - AUTO_BLOCK=true
+      - THRESHOLD=70
     depends_on:
       - redis
 

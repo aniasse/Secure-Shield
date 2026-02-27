@@ -2,7 +2,7 @@
 .env
 .env.local
 .env.*.local
-
+PROJECT_PRESENTATION.md
 # Dependencies
 node_modules/
 vendor/

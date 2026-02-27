@@ -1,6 +1,6 @@
 # SECURE SHIELD
 
-**Plateforme de Sécurité Opérationnelle pour l'Afrique de l'Ouest**
+**Plateforme de Sécurité Opérationnelle**
 
 ---
 

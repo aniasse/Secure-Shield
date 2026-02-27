@@ -1,0 +1,26 @@
+{
+  "name": "@afri-secure/soc-core",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "dev": "bun run src/index.ts",
+    "start": "bun run src/index.ts",
+    "test": "bun test",
+    "build": "bun build"
+  },
+  "dependencies": {
+    "kafkajs": "^2.2.4",
+    "@elastic/elasticsearch": "^8.11.0",
+    "ioredis": "^5.3.2",
+    "fastify": "^4.24.3",
+    "@fastify/cors": "^8.4.2",
+    "@fastify/jwt": "^8.0.0",
+    "zod": "^3.22.4",
+    "pino": "^8.17.2",
+    "yaml": "^2.3.4"
+  },
+  "devDependencies": {
+    "@types/bun": "latest",
+    "typescript": "^5.3.3"
+  }
+}

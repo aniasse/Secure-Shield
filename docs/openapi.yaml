@@ -1,0 +1,584 @@
+openapi: 3.0.3
+info:
+  title: AFRI SECURE SHIELD API
+  description: |
+    Security Operations Center API for Africa
+
+    ## Authentication
+
+    All endpoints require authentication using Bearer token:
+    ```
+    Authorization: Bearer <your-api-key>
+    ```
+
+    ## Rate Limiting
+
+    - Free tier: 100 requests/minute
+    - Enterprise: Unlimited
+
+    ## Webhooks
+
+    Configure webhooks for real-time notifications.
+  version: 1.0.0
+  contact:
+    name: AFRI SECURE SHIELD
+    email: support@afri-secure.com
+    url: https://afri-secure.com
+  license:
+    name: MIT
+    url: https://opensource.org/licenses/MIT
+
+servers:
+  - url: http://localhost:8080
+    description: Development server
+  - url: https://api.afri-secure.com
+    description: Production server
+
+tags:
+  - name: SIEM
+    description: Log management and search
+  - name: Alerts
+    description: Alert management
+  - name: Threat Intelligence
+    description: Threat intelligence lookups
+  - name: Sandbox
+    description: Malware analysis
+  - name: SOAR
+    description: Orchestration and automation
+  - name: Fraud
+    description: Fraud detection
+  - name: Academy
+    description: Training and certifications
+
+paths:
+  # ==================== SIEM ====================
+  /api/v1/logs:
+    get:
+      tags:
+        - SIEM
+      summary: Search logs
+      description: Search and filter logs from all sources
+      parameters:
+        - name: q
+          in: query
+          schema:
+            type: string
+          description: Search query (Lucene syntax)
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: Start time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+          description: End time
+        - name: size
+          in: query
+          schema:
+            type: integer
+            default: 100
+          description: Maximum results
+      responses:
+        "200":
+          description: Log entries
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LogEntry"
+
+  /api/v1/logs/ingest:
+    post:
+      tags:
+        - SIEM
+      summary: Ingest logs
+      description: Submit log entries for analysis
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                logs:
+                  type: array
+                  items:
+                    $ref: "#/components/schemas/LogEntry"
+      responses:
+        "202":
+          description: Logs accepted for processing
+
+  # ==================== Alerts ====================
+  /api/v1/alerts:
+    get:
+      tags:
+        - Alerts
+      summary: List alerts
+      parameters:
+        - name: severity
+          in: query
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 10
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [new, in_progress, resolved, false_positive]
+        - name: from
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: to
+          in: query
+          schema:
+            type: string
+            format: date-time
+      responses:
+        "200":
+          description: Alert list
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Alert"
+
+  /api/v1/alerts/{id}:
+    get:
+      tags:
+        - Alerts
+      summary: Get alert details
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Alert details
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Alert"
+    patch:
+      tags:
+        - Alerts
+      summary: Update alert
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [new, in_progress, resolved, false_positive]
+                assigned_to:
+                  type: string
+      responses:
+        "200":
+          description: Updated alert
+
+  # ==================== Threat Intelligence ====================
+  /api/v1/threat-intel/check/{type}:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: Check indicator reputation
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+            enum: [ip, domain, hash, url]
+        - name: value
+          in: query
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Threat intelligence data
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/ThreatIntel"
+
+  /api/v1/threat-intel/cves/recent:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: Get recent CVEs
+      parameters:
+        - name: days
+          in: query
+          schema:
+            type: integer
+            default: 7
+      responses:
+        "200":
+          description: Recent CVEs
+
+  /api/v1/threat-intel/actors:
+    get:
+      tags:
+        - Threat Intelligence
+      summary: List threat actors
+      responses:
+        "200":
+          description: Threat actor list
+
+  # ==================== Sandbox ====================
+  /api/v1/sandbox/analyze:
+    post:
+      tags:
+        - Sandbox
+      summary: Analyze file
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Analysis report
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AnalysisReport"
+
+  /api/v1/sandbox/reports/{id}:
+    get:
+      tags:
+        - Sandbox
+      summary: Get analysis report
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        "200":
+          description: Analysis report
+
+  # ==================== SOAR ====================
+  /api/v1/soar/playbooks:
+    get:
+      tags:
+        - SOAR
+      summary: List playbooks
+      responses:
+        "200":
+          description: Playbook list
+
+  /api/v1/soar/playbooks/{id}/run:
+    post:
+      tags:
+        - SOAR
+      summary: Run playbook
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        "200":
+          description: Execution result
+
+  /api/v1/soar/executions:
+    get:
+      tags:
+        - SOAR
+      summary: List executions
+      parameters:
+        - name: playbook_id
+          in: query
+          schema:
+            type: string
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [running, completed, failed]
+      responses:
+        "200":
+          description: Execution list
+
+  # ==================== Fraud ====================
+  /api/v1/fraud/evaluate:
+    post:
+      tags:
+        - Fraud
+      summary: Evaluate transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Transaction"
+      responses:
+        "200":
+          description: Fraud evaluation result
+
+  /api/v1/fraud/alerts:
+    get:
+      tags:
+        - Fraud
+      summary: List fraud alerts
+      responses:
+        "200":
+          description: Fraud alert list
+
+  # ==================== Academy ====================
+  /api/v1/academy/courses:
+    get:
+      tags:
+        - Academy
+      summary: List courses
+      parameters:
+        - name: level
+          in: query
+          schema:
+            type: string
+            enum: [beginner, intermediate, advanced]
+      responses:
+        "200":
+          description: Course list
+
+  /api/v1/academy/enroll:
+    post:
+      tags:
+        - Academy
+      summary: Enroll in course
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                user_id:
+                  type: string
+                course_id:
+                  type: string
+      responses:
+        "200":
+          description: Enrollment confirmation
+
+  /api/v1/academy/quiz/{lessonId}/submit:
+    post:
+      tags:
+        - Academy
+      summary: Submit quiz answers
+      parameters:
+        - name: lessonId
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              additionalProperties:
+                type: string
+      responses:
+        "200":
+          description: Quiz results
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+  schemas:
+    LogEntry:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        source:
+          type: string
+        source_ip:
+          type: string
+        dest_ip:
+          type: string
+        action:
+          type: string
+        protocol:
+          type: string
+        user:
+          type: string
+        hostname:
+          type: string
+        raw:
+          type: string
+
+    Alert:
+      type: object
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        severity:
+          type: integer
+          minimum: 1
+          maximum: 10
+        confidence:
+          type: number
+          minimum: 0
+          maximum: 100
+        title:
+          type: string
+        description:
+          type: string
+        source:
+          type: string
+        status:
+          type: string
+          enum: [new, in_progress, resolved, false_positive]
+        mitre_technique:
+          type: string
+        iocs:
+          type: array
+          items:
+            type: string
+        affected_assets:
+          type: array
+          items:
+            type: string
+
+    ThreatIntel:
+      type: object
+      properties:
+        indicator:
+          type: string
+        type:
+          type: string
+          enum: [ip, domain, hash, url]
+        reputation:
+          type: string
+          enum: [malicious, suspicious, clean, unknown]
+        confidence:
+          type: number
+        sources:
+          type: array
+          items:
+            type: string
+        tags:
+          type: array
+          items:
+            type: string
+
+    AnalysisReport:
+      type: object
+      properties:
+        id:
+          type: string
+        file_hash:
+          type: string
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        file_type:
+          type: string
+        status:
+          type: string
+          enum: [pending, analyzing, completed, failed]
+        verdict:
+          type: object
+          properties:
+            category:
+              type: string
+              enum: [malicious, suspicious, clean, unknown]
+            severity:
+              type: integer
+            confidence:
+              type: number
+            description:
+              type: string
+
+    Transaction:
+      type: object
+      required:
+        - id
+        - user_id
+        - amount
+        - type
+      properties:
+        id:
+          type: string
+        timestamp:
+          type: string
+          format: date-time
+        user_id:
+          type: string
+        amount:
+          type: number
+        currency:
+          type: string
+        type:
+          type: string
+          enum: [payment, transfer, withdrawal, refund]
+        payment_method:
+          type: string
+        merchant_id:
+          type: string
+        location:
+          type: string
+        ip_address:
+          type: string
+        device_fingerprint:
+          type: string
+
+security:
+  - bearerAuth: []
+
+x-webhook-topics:
+  - alert.created
+  - alert.updated
+  - alert.resolved
+  - threat.detected
+  - anomaly.detected
+  - sandbox.completed
+  - fraud.detected

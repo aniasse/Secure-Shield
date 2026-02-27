@@ -1,0 +1,280 @@
+# AFRI SECURE SHIELD - GitLab CI/CD Pipeline
+
+stages:
+  - lint
+  - test
+  - build
+  - security
+  - deploy
+
+variables:
+  DOCKER_REGISTRY: registry.afri-secure.com
+  DOCKER_IMAGE: $DOCKER_REGISTRY/afri-secure
+
+# Default configuration
+default:
+  image: docker:24-dind
+  services:
+    - docker:24-dind
+  before_script:
+    - docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $DOCKER_REGISTRY
+  retry:
+    max: 2
+    when:
+      - runner_system_failure
+      - stuck_or_timeout_failure
+
+# Linting Stage
+lint:code:
+  stage: lint
+  image: node:20-alpine
+  before_script:
+    - npm install -g eslint prettier
+  script:
+    - echo "Running code linting..."
+    - cd packages/soc-core
+    - npm install
+    - npm run lint || true
+  allow_failure: true
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 1 week
+
+lint:docker:
+  stage: lint
+  image: hadolint/hadolint:latest
+  script:
+    - hadolint docker/Dockerfile*
+
+lint:yaml:
+  stage: lint
+  image: alpine/yaml:latest
+  script:
+    - apk add --no-cache yamllint
+    - yamllint kubernetes/ -c .yamllint
+
+# Testing Stage
+test:unit:
+  stage: test
+  image: node:20-alpine
+  services:
+    - redis:7-alpine
+  variables:
+    REDIS_HOST: redis
+    KAFKA_BROKER: kafka:9092
+    ES_NODE: http://elasticsearch:9200
+  before_script:
+    - cd packages/soc-core
+    - npm install
+  script:
+    - npm run test -- --coverage
+  coverage: '/All files[^|]*\|[^|]*\s+([\d\.]+)/'
+  artifacts:
+    paths:
+      - coverage/
+    expire_in: 1 week
+
+test:integration:
+  stage: test
+  image: docker/compose:1.29.2
+  services:
+    - docker:24-dind
+  variables:
+    DOCKER_HOST: tcp://docker:2376
+    DOCKER_TLS_CERTDIR: "/certs"
+  script:
+    - docker-compose up -d
+    - sleep 30
+    - docker-compose run --rm test-runner npm test
+  allow_failure: true
+
+# Security Stage
+security:secret-scan:
+  stage: security
+  image: alpine:latest
+  before_script:
+    - apk add --no-cache git curl
+  script:
+    - echo "Running secret scanning..."
+    - curl -sL https://git.io/gitsecrets | sh
+    - git secrets --scan
+  allow_failure: true
+
+security:dependency-scan:
+  stage: security
+  image: node:20-alpine
+  before_script:
+    - cd packages/soc-core
+    - npm install
+  script:
+    - npm audit --audit-level=high || true
+  allow_failure: true
+
+security:container-scan:
+  stage: security
+  image: aquasec/trivy:latest
+  script:
+    - trivy image --exit-code=1 --severity=HIGH,CRITICAL $DOCKER_IMAGE/siem:latest || true
+  allow_failure: true
+
+# Build Stage
+build:siem:
+  stage: build
+  script:
+    - |
+      docker build
+        --build-arg VERSION=$CI_COMMIT_SHORT_SHA
+        --build-arg BUILD_DATE=$CI_BUILD_DATE
+        -t $DOCKER_IMAGE/siem:$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/siem:latest
+        -f docker/Dockerfile.siem
+        .
+    - docker push $DOCKER_IMAGE/siem:$CI_COMMIT_SHORT_SHA
+    - docker push $DOCKER_IMAGE/siem:latest
+  only:
+    - main
+    - develop
+    - tags
+
+build:threat-intel:
+  stage: build
+  script:
+    - |
+      docker build
+        --build-arg VERSION=$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/threat-intel:$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/threat-intel:latest
+        -f docker/Dockerfile.threat-intel
+        .
+    - docker push $DOCKER_IMAGE/threat-intel:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+    - develop
+    - tags
+
+build:soar:
+  stage: build
+  script:
+    - |
+      docker build
+        --build-arg VERSION=$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/soar:$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/soar:latest
+        -f docker/Dockerfile.soar
+        .
+    - docker push $DOCKER_IMAGE/soar:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+    - develop
+    - tags
+
+build:ml:
+  stage: build
+  script:
+    - |
+      docker build
+        --build-arg VERSION=$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/ml-detector:$CI_COMMIT_SHORT_SHA
+        -t $DOCKER_IMAGE/ml-detector:latest
+        -f docker/Dockerfile.ml
+        .
+    - docker push $DOCKER_IMAGE/ml-detector:$CI_COMMIT_SHORT_SHA
+  only:
+    - main
+    - develop
+    - tags
+
+# Deploy Stage
+deploy:staging:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: staging
+    url: https://staging.afri-secure.com
+  script:
+    - kubectl config use-context staging
+    - kubectl apply -f kubernetes/manifests.yaml
+    - kubectl set image deployment/siem-api siem=$DOCKER_IMAGE/siem:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/threat-intel-api threat-intel=$DOCKER_IMAGE/threat-intel:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/soar-api soar=$DOCKER_IMAGE/soar:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl rollout status deployment/siem-api -n afri-secure
+  only:
+    - develop
+  when: manual
+
+deploy:production:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  environment:
+    name: production
+    url: https://api.afri-secure.com
+  script:
+    - kubectl config use-context production
+    - kubectl apply -f kubernetes/manifests.yaml
+    - kubectl set image deployment/siem-api siem=$DOCKER_IMAGE/siem:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/threat-intel-api threat-intel=$DOCKER_IMAGE/threat-intel:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/soar-api soar=$DOCKER_IMAGE/soar:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/ml-api ml=$DOCKER_IMAGE/ml-detector:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl set image deployment/fraud-api fraud=$DOCKER_IMAGE/fraud-detector:$CI_COMMIT_SHORT_SHA -n afri-secure
+    - kubectl rollout status deployment/siem-api -n afri-secure
+    - kubectl rollout status deployment/threat-intel-api -n afri-secure
+  only:
+    - main
+    - tags
+  when: manual
+
+deploy:rollback:
+  stage: deploy
+  image: bitnami/kubectl:latest
+  script:
+    - kubectl config use-context production
+    - kubectl rollout undo deployment/siem-api -n afri-secure
+    - kubectl rollout undo deployment/threat-intel-api -n afri-secure
+  when: manual
+  only:
+    - main
+
+# Cleanup
+cleanup:registry:
+  stage: deploy
+  image: docker:latest
+  script:
+    - |
+      # Keep only last 20 images per service
+      for service in siem threat-intel soar ml-detector fraud-detector sandbox; do
+        docker images $DOCKER_IMAGE/$service --format "{{.ID}}" | tail -n +21 | xargs -r docker rmi -f || true
+      done
+  only:
+    - schedule
+  when: manual
+
+# Notifications
+notify:slack:
+  stage: .post
+  image: curlimages/curl:latest
+  script:
+    - |
+      if [ "$CI_PIPELINE_STATUS" == "success" ]; then
+        STATUS_EMOJI=":white_check_mark:"
+      else
+        STATUS_EMOJI=":x:"
+      fi
+
+      curl -X POST "$SLACK_WEBHOOK" \
+        -H 'Content-Type: application/json' \
+        -d "{
+          \"attachments\": [{
+            \"color\": \"$CI_PIPELINE_STATUS\" == \"success\" ? \"good\" : \"danger\",
+            \"title\": \"Pipeline $CI_PIPELINE_STATUS\",
+            \"text\": \"$STATUS_EMOJI $CI_PROJECT_NAME - $CI_COMMIT_REF_NAME\",
+            \"fields\": [
+              {\"title\": \"Stage\", \"value\": \"$CI_COMMIT_TITLE\", \"short\": true},
+              {\"title\": \"Author\", \"value\": \"$CI_COMMIT_AUTHOR\", \"short\": true}
+            ]
+          }]
+        }"
+  only:
+    - main
+    - develop
+  when: always

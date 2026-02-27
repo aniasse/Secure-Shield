@@ -1,4 +1,4 @@
-# AFRI SECURE SHIELD
+# SECURE SHIELD
 
 **Plateforme de Sécurité Opérationnelle pour l'Afrique de l'Ouest**
 
@@ -124,7 +124,7 @@ GET /api/v1/soar/executions?status=failed
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
-│                    AFRI SECURE SHIELD                       │
+│                    SECURE SHIELD                       │
 ├─────────────────────────────────────────────────────────────┤
 │                                                              │
 │   ┌─────────┐  ┌─────────┐  ┌─────────┐  ┌─────────┐    │
@@ -242,4 +242,4 @@ MIT License - Voir LICENSE pour plus de détails.
 
 ---
 
-**AFRI SECURE SHIELD** - Protégeons l'Afrique numériquement 🛡️
+**SECURE SHIELD** - Protégeons l'Afrique numériquement 🛡️

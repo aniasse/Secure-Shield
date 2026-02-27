@@ -1,14 +1,14 @@
-# 🛡️ AFRI SECURE SHIELD
+# 🛡️ SECURE SHIELD
 
-## Plateforme de Sécurité Opérationnelle pour l'Afrique
+## Plateforme de Sécurité Opérationnelle Universelle
 
 ---
 
 ## 📋 Présentation du Projet
 
-### Qu'est-ce que AFRI SECURE SHIELD ?
+### Qu'est-ce que SECURE SHIELD ?
 
-**AFRI SECURE SHIELD** est une plateforme SOC (Security Operations Center) complète, développée au Sénégal et conçue pour répondre aux besoins spécifiques des organisations africaines en matière de cybersécurité.
+**SECURE SHIELD** est une plateforme SOC (Security Operations Center) complète, développée au Sénégal et conçue pour répondre aux besoins spécifiques des organisations africaines en matière de cybersécurité.
 
 ### Pourquoi ce projet ?
 
@@ -30,7 +30,7 @@
 
 #### Notre réponse
 
-| Problème         | Solution AFRI SECURE SHIELD     |
+| Problème         | Solution SECURE SHIELD          |
 | ---------------- | ------------------------------- |
 | Manque d'experts | AI + Automatisation             |
 | Coûts élevés     | Infrastructure locale optimisée |
@@ -67,7 +67,7 @@
 
 ```
                     ┌─────────────────────────────────────────────┐
-                    │           AFRI SECURE SHIELD                │
+                    │           SECURE SHIELD                │
                     └─────────────────────────────────────────────┘
                                          │
      ┌────────────────────────────────────┼────────────────────────────────────┐
@@ -304,5 +304,5 @@ MIT License - Voir [LICENSE](LICENSE) pour plus de détails.
 
 ---
 
-**AFRI SECURE SHIELD** 🛡️  
+**SECURE SHIELD** 🛡️  
 _Protégeons l'Afrique numériquement_

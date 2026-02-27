@@ -1,8 +1,8 @@
 openapi: 3.0.3
 info:
-  title: AFRI SECURE SHIELD API
+  title: SECURE SHIELD API
   description: |
-    Security Operations Center API for Africa
+    Security Operations Center API
 
     ## Authentication
 
@@ -21,9 +21,9 @@ info:
     Configure webhooks for real-time notifications.
   version: 1.0.0
   contact:
-    name: AFRI SECURE SHIELD
-    email: support@afri-secure.com
-    url: https://afri-secure.com
+    name: SECURE SHIELD
+    email: support@secure-shield.com
+    url: https://secure-shield.com
   license:
     name: MIT
     url: https://opensource.org/licenses/MIT
@@ -31,7 +31,7 @@ info:
 servers:
   - url: http://localhost:8080
     description: Development server
-  - url: https://api.afri-secure.com
+  - url: https://api.secure-shield.com
     description: Production server
 
 tags:

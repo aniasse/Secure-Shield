@@ -358,7 +358,7 @@ class ReportService {
         title: "Executive Security Summary",
         period: `${report.period_start} to ${report.period_end}`,
         prepared_for: "C-Suite",
-        prepared_by: "AFRI SECURE SHIELD SOC Team",
+        prepared_by: "SECURE SHIELD SOC Team",
       },
       key_metrics: {
         total_security_events: 12547,

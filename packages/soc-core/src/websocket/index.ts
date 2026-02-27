@@ -97,7 +97,7 @@ class NotificationServer {
     // Send welcome message
     this.sendToClient(clientId, {
       type: "connected",
-      payload: { clientId, message: "Connected to AFRI SECURE SHIELD" },
+      payload: { clientId, message: "Connected to SECURE SHIELD" },
       timestamp: new Date().toISOString(),
     });
 

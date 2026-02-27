@@ -1,5 +1,5 @@
 ---
-# AFRI SECURE SHIELD - Kubernetes Manifests
+# SECURE SHIELD - Kubernetes Manifests
 # Complete deployment configuration for production
 
 apiVersion: v1
@@ -23,7 +23,7 @@ data:
   REDIS_HOST: "redis-master"
   REDIS_PORT: "6379"
   LOG_LEVEL: "info"
-  TZ: "Africa/Dakar"
+  TZ: "UTC"
 
 ---
 # Secrets (should be managed via external secrets operator in production)

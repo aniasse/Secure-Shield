@@ -1,18 +1,18 @@
 """
-AFRI SECURE SHIELD - Python Client Library
-==========================================
+SECURE SHIELD - Python Client Library
+====================================
 
-A Python client library for interacting with the AFRI SECURE SHIELD SOC platform.
+A Python client library for interacting with the SECURE SHIELD SOC platform.
 
 Installation:
-    pip install afri-secure-shield
+    pip install secure-shield
 
 Usage:
-    from afri_secure_shield import AFRISecureShield
+    from secure_shield import SecureShield
     
-    client = AFRISecureShield(
+    client = SecureShield(
         api_key="your-api-key",
-        base_url="https://api.afri-secure.com"
+        base_url="https://api.secure-shield.com"
     )
     
     # Get alerts
@@ -145,12 +145,12 @@ class AnalysisReport:
         )
 
 
-class AFRIException(Exception):
+class SecureShieldException(Exception):
     """Base exception for AFRI SECURE SHIELD client"""
     pass
 
 
-class APIError(AFRIException):
+class APIError(SecureShieldException):
     """API error response"""
     def __init__(self, message: str, status_code: int = 0, response: Dict = None):
         super().__init__(message)
@@ -158,19 +158,19 @@ class APIError(AFRIException):
         self.response = response or {}
 
 
-class RateLimitError(AFRIException):
+class RateLimitError(SecureShieldException):
     """Rate limit exceeded"""
     def __init__(self, retry_after: int = 60):
         self.retry_after = retry_after
         super().__init__(f"Rate limit exceeded. Retry after {retry_after} seconds")
 
 
-class AFRISecureShield:
+class SecureShield:
     """
     Main client for AFRI SECURE SHIELD SOC Platform.
     
     Example:
-        client = AFRISecureShield(
+        client = SecureShield(
             api_key="your-api-key",
             base_url="https://api.afri-secure.com"
         )
@@ -194,7 +194,7 @@ class AFRISecureShield:
             max_retries: Maximum number of retries
             verify_ssl: Whether to verify SSL certificates
         """
-        self.api_key = api_key or os.environ.get("AFRI_API_KEY")
+        self.api_key = api_key or os.environ.get("SECURE_API_KEY")
         self.base_url = base_url.rstrip("/")
         self.timeout = timeout
         self.max_retries = max_retries
@@ -274,15 +274,15 @@ class AFRISecureShield:
                 if attempt < self.max_retries - 1:
                     time.sleep(2 ** attempt)
                     continue
-                raise AFRIException("Request timed out")
+                raise SecureShieldException("Request timed out")
             
             except RequestException as e:
                 if attempt < self.max_retries - 1:
                     time.sleep(2 ** attempt)
                     continue
-                raise AFRIException(f"Request failed: {str(e)}")
+                raise SecureShieldException(f"Request failed: {str(e)}")
 
-        raise AFRIException("Max retries exceeded")
+        raise SecureShieldException("Max retries exceeded")
 
     # ==================== SIEM Operations ====================
 
@@ -588,7 +588,7 @@ class AFRISecureShield:
             
             return ws
         except ImportError:
-            raise AFRIException("websocket-client not installed. Run: pip install websocket-client")
+            raise SecureShieldException("websocket-client not installed. Run: pip install websocket-client")
 
     # ==================== Context Manager ====================
 
@@ -605,9 +605,9 @@ def create_client(
     api_key: Optional[str] = None,
     base_url: str = "http://localhost:8080",
     **kwargs,
-) -> AFRISecureShield:
+) -> SecureShield:
     """Create an AFRI SECURE SHIELD client"""
-    return AFRISecureShield(api_key=api_key, base_url=base_url, **kwargs)
+    return SecureShield(api_key=api_key, base_url=base_url, **kwargs)
 
 
 def quick_alerts(
@@ -621,7 +621,7 @@ def quick_alerts(
     Example:
         alerts = quick_alerts(severity=8, hours=12)
     """
-    client = AFRISecureShield(**kwargs)
+    client = SecureShield(**kwargs)
     from_time = (datetime.now() - timedelta(hours=hours)).isoformat()
     return client.alerts_list(severity=severity, from_time=from_time)
 
@@ -633,5 +633,5 @@ def quick_scan(file_path: str, **kwargs) -> AnalysisReport:
     Example:
         report = quick_scan("malware.exe")
     """
-    client = AFRISecureShield(**kwargs)
+    client = SecureShield(**kwargs)
     return client.sandbox_analyze(file_path)

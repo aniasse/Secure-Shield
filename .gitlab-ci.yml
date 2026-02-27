@@ -1,4 +1,4 @@
-# AFRI SECURE SHIELD - GitLab CI/CD Pipeline
+# SECURE SHIELD - GitLab CI/CD Pipeline
 
 stages:
   - lint

@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SecureShield - Cyber Agent Dashboard</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Courier New", monospace;
+        background: #0a0a0a;
+        color: #00ff00;
+        min-height: 100vh;
+      }
+
+      .header {
+        background: linear-gradient(90deg, #001100, #003300);
+        padding: 1rem 2rem;
+        border-bottom: 2px solid #00ff00;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .header h1 {
+        font-size: 1.5rem;
+        text-shadow: 0 0 10px #00ff00;
+      }
+
+      .status-badge {
+        padding: 0.5rem 1rem;
+        border: 1px solid #00ff00;
+        border-radius: 4px;
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.5;
+        }
+      }
+
+      .container {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 1rem;
+        padding: 1rem;
+        max-width: 1600px;
+        margin: 0 auto;
+      }
+
+      .panel {
+        background: #001100;
+        border: 1px solid #00ff00;
+        border-radius: 8px;
+        padding: 1rem;
+      }
+
+      .panel.full-width {
+        grid-column: 1 / -1;
+      }
+
+      .panel h2 {
+        font-size: 1rem;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
+        border-bottom: 1px solid #004400;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .metrics-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 1rem;
+      }
+
+      .metric {
+        text-align: center;
+        padding: 1rem;
+        border: 1px solid #004400;
+        border-radius: 4px;
+      }
+
+      .metric .value {
+        font-size: 2rem;
+        font-weight: bold;
+        text-shadow: 0 0 10px currentColor;
+      }
+
+      .metric .label {
+        font-size: 0.8rem;
+        color: #008800;
+        margin-top: 0.5rem;
+      }
+
+      .metric.danger .value {
+        color: #ff0000;
+      }
+      .metric.warning .value {
+        color: #ffaa00;
+      }
+      .metric.success .value {
+        color: #00ff00;
+      }
+      .metric.info .value {
+        color: #00aaff;
+      }
+
+      .log-container {
+        height: 400px;
+        overflow-y: auto;
+        background: #000;
+        border: 1px solid #004400;
+        border-radius: 4px;
+        padding: 0.5rem;
+        font-size: 0.85rem;
+      }
+
+      .log-entry {
+        padding: 0.25rem 0;
+        border-bottom: 1px solid #001100;
+        display: flex;
+        gap: 1rem;
+      }
+
+      .log-entry .time {
+        color: #006600;
+        min-width: 80px;
+      }
+
+      .log-entry .type {
+        min-width: 80px;
+        font-weight: bold;
+      }
+
+      .log-entry .type.block {
+        color: #ff0000;
+      }
+      .log-entry .type.quarantine {
+        color: #ffaa00;
+      }
+      .log-entry .type.alert {
+        color: #00aaff;
+      }
+      .log-entry .type.rate_limit {
+        color: #ff00ff;
+      }
+      .log-entry .type.info {
+        color: #00ff00;
+      }
+      .log-entry .type.error {
+        color: #ff0000;
+      }
+
+      .defense-list {
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .defense-item {
+        padding: 0.75rem;
+        margin-bottom: 0.5rem;
+        border: 1px solid #004400;
+        border-radius: 4px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+
+      .defense-item .type {
+        font-weight: bold;
+      }
+
+      .defense-item .type.block_ip {
+        color: #ff0000;
+      }
+      .defense-item .type.quarantine {
+        color: #ffaa00;
+      }
+      .defense-item .type.rate_limit {
+        color: #ff00ff;
+      }
+      .defense-item .type.alert {
+        color: #00aaff;
+      }
+      .defense-item .type.isolate {
+        color: #ff6600;
+      }
+
+      .actions {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+      }
+
+      .action-btn {
+        padding: 0.5rem 1rem;
+        background: #002200;
+        border: 1px solid #00ff00;
+        color: #00ff00;
+        cursor: pointer;
+        font-family: inherit;
+        border-radius: 4px;
+        transition: all 0.2s;
+      }
+
+      .action-btn:hover {
+        background: #004400;
+        box-shadow: 0 0 10px #00ff00;
+      }
+
+      .action-btn.danger {
+        border-color: #ff0000;
+        color: #ff0000;
+      }
+
+      .action-btn.danger:hover {
+        background: #440000;
+        box-shadow: 0 0 10px #ff0000;
+      }
+
+      .console {
+        background: #000;
+        border: 1px solid #00ff00;
+        border-radius: 4px;
+        padding: 1rem;
+        height: 150px;
+        overflow-y: auto;
+        font-size: 0.8rem;
+      }
+
+      .console-line {
+        margin: 0.25rem 0;
+      }
+
+      .console-line .time {
+        color: #006600;
+      }
+      .console-line .msg {
+        color: #00ff00;
+      }
+      .console-line.error .msg {
+        color: #ff0000;
+      }
+      .console-line.warn .msg {
+        color: #ffaa00;
+      }
+
+      .auto-refresh {
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+      }
+
+      .auto-refresh input {
+        accent-color: #00ff00;
+      }
+
+      ::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      ::-webkit-scrollbar-track {
+        background: #001100;
+      }
+
+      ::-webkit-scrollbar-thumb {
+        background: #004400;
+        border-radius: 4px;
+      }
+
+      ::-webkit-scrollbar-thumb:hover {
+        background: #006600;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="header">
+      <h1>🛡️ SECURE SHIELD - CYBER AGENT</h1>
+      <div class="status-badge" id="agentStatus">● MONITORING</div>
+    </div>
+
+    <div class="container">
+      <div class="panel full-width">
+        <h2>📊 METRICS</h2>
+        <div class="metrics-grid">
+          <div class="metric danger">
+            <div class="value" id="blockedIPs">0</div>
+            <div class="label">BLOCKED IPs</div>
+          </div>
+          <div class="metric warning">
+            <div class="value" id="quarantinedHosts">0</div>
+            <div class="label">QUARANTINED</div>
+          </div>
+          <div class="metric info">
+            <div class="value" id="threatsDetected">0</div>
+            <div class="label">THREATS</div>
+          </div>
+          <div class="metric success">
+            <div class="value" id="defensesExecuted">0</div>
+            <div class="label">DEFENSES</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>📜 LIVE LOGS</h2>
+        <div class="log-container" id="logContainer"></div>
+      </div>
+
+      <div class="panel">
+        <h2>🛡️ RECENT DEFENSES</h2>
+        <div class="defense-list" id="defenseList"></div>
+      </div>
+
+      <div class="panel">
+        <h2>⚡ ACTIONS</h2>
+        <div class="actions">
+          <button
+            class="action-btn"
+            onclick="executeDefense('block_ip', '192.168.1.99')"
+          >
+            Block IP
+          </button>
+          <button
+            class="action-btn"
+            onclick="executeDefense('quarantine', 'suspicious-host')"
+          >
+            Quarantine
+          </button>
+          <button
+            class="action-btn"
+            onclick="executeDefense('rate_limit', '10.0.0.1')"
+          >
+            Rate Limit
+          </button>
+          <button
+            class="action-btn"
+            onclick="executeDefense('isolate', '192.168.1.50')"
+          >
+            Isolate
+          </button>
+          <button
+            class="action-btn danger"
+            onclick="executeDefense('alert', 'SOC')"
+          >
+            Send Alert
+          </button>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>🎛️ CONTROL</h2>
+        <div class="actions">
+          <button class="action-btn" onclick="refreshData()">
+            Refresh Now
+          </button>
+          <label class="auto-refresh">
+            <input
+              type="checkbox"
+              id="autoRefresh"
+              checked
+              onchange="toggleAutoRefresh()"
+            />
+            Auto Refresh (2s)
+          </label>
+        </div>
+      </div>
+
+      <div class="panel full-width">
+        <h2>💻 CONSOLE OUTPUT</h2>
+        <div class="console" id="console"></div>
+      </div>
+    </div>
+
+    <script>
+      const API_BASE = "http://localhost:8095";
+      let autoRefreshInterval = null;
+
+      function log(message, type = "info") {
+        const consoleEl = document.getElementById("console");
+        const time = new Date().toLocaleTimeString();
+        consoleEl.innerHTML += `<div class="console-line ${type}"><span class="time">[${time}]</span> <span class="msg">${message}</span></div>`;
+        consoleEl.scrollTop = consoleEl.scrollHeight;
+      }
+
+      function addLogEntry(time, type, message) {
+        const container = document.getElementById("logContainer");
+        const div = document.createElement("div");
+        div.className = "log-entry";
+        div.innerHTML = `<span class="time">${time}</span><span class="type ${type}">${type.toUpperCase()}</span><span>${message}</span>`;
+        container.insertBefore(div, container.firstChild);
+        if (container.children.length > 50)
+          container.removeChild(container.lastChild);
+      }
+
+      async function refreshData() {
+        try {
+          const [status, metrics, defenses] = await Promise.all([
+            fetch(`${API_BASE}/api/v1/agent/status`).then((r) => r.json()),
+            fetch(`${API_BASE}/api/v1/agent/metrics`).then((r) => r.json()),
+            fetch(`${API_BASE}/api/v1/agent/defenses?limit=10`).then((r) =>
+              r.json(),
+            ),
+          ]);
+
+          document.getElementById("agentStatus").textContent =
+            "● " + (status.status || "UNKNOWN").toUpperCase();
+          document.getElementById("blockedIPs").textContent =
+            metrics.blockedIPs || 0;
+          document.getElementById("quarantinedHosts").textContent =
+            metrics.quarantinedHosts || 0;
+          document.getElementById("threatsDetected").textContent =
+            status.threatsDetected || 0;
+          document.getElementById("defensesExecuted").textContent =
+            status.defensesExecuted || 0;
+
+          const defenseList = document.getElementById("defenseList");
+          defenseList.innerHTML = defenses
+            .map(
+              (d) => `
+            <div class="defense-item">
+              <span class="type ${d.type}">${d.type.toUpperCase()}</span>
+              <span>${d.target}</span>
+              <span style="color: #006600; font-size: 0.8rem;">${new Date(d.executedAt).toLocaleTimeString()}</span>
+            </div>
+          `,
+            )
+            .join("");
+        } catch (e) {
+          log("Error fetching data: " + e.message, "error");
+        }
+      }
+
+      async function executeDefense(type, target) {
+        const reasons = {
+          block_ip: "Manual block by operator",
+          quarantine: "Manual quarantine by operator",
+          rate_limit: "Manual rate limit by operator",
+          isolate: "Manual isolation by operator",
+          alert: "Manual alert by operator",
+        };
+
+        log(`Executing ${type} on ${target}...`, "warn");
+
+        try {
+          const res = await fetch(`${API_BASE}/api/v1/agent/defense`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              type,
+              target,
+              reason: reasons[type],
+              severity: 80,
+            }),
+          });
+          const data = await res.json();
+
+          if (data.status === "executed") {
+            log(`✓ ${type.toUpperCase()} executed on ${target}`, "info");
+            addLogEntry(
+              new Date().toLocaleTimeString(),
+              type,
+              `${target} - ${reasons[type]}`,
+            );
+          } else {
+            log(`✗ Failed to execute ${type}`, "error");
+          }
+        } catch (e) {
+          log(`Error: ${e.message}`, "error");
+        }
+
+        setTimeout(refreshData, 500);
+      }
+
+      function toggleAutoRefresh() {
+        const checkbox = document.getElementById("autoRefresh");
+        if (checkbox.checked) {
+          autoRefreshInterval = setInterval(refreshData, 2000);
+          log("Auto refresh enabled", "info");
+        } else {
+          clearInterval(autoRefreshInterval);
+          log("Auto refresh disabled", "info");
+        }
+      }
+
+      log("Cyber Agent Dashboard connected", "info");
+      log("Initializing monitoring...", "info");
+
+      refreshData();
+      autoRefreshInterval = setInterval(refreshData, 2000);
+    </script>
+  </body>
+</html>

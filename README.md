@@ -1,6 +1,6 @@
 # SECURE SHIELD
 
-**Plateforme de Sécurité Opérationnelle**
+**Plateforme de Sécurité Opérationnelle pour SOC-as-a-Service**
 
 ---
 
@@ -8,34 +8,66 @@
 
 ### Prérequis
 
-- Docker & Docker Compose
-- 16GB RAM minimum
-- 500GB SSD
+- Docker & Docker Compose (v24.0+)
+- 16GB RAM minimum (recommandé 32GB pour production)
+- 500GB SSD (recommandé 1TB pour production)
+- Node.js v18+ (pour développement)
+- Python 3.9+ (pour ML/AI)
+- Git
 
 ### Installation
 
 ```bash
-# Clonez le projet
+# 1. Cloner le projet
 git clone https://github.com/aniasse/afri-secure-shield.git
 cd afri-secure-shield
 
-# Lancez l'infrastructure
-docker-compose up -d
+# 2. Copier et configurer les variables d'environnement
+cp .env.example .env
+# Éditer .env avec vos configurations
 
-# Vérifiez les services
+# 3. Installer les dépendances (développement)
+npm install
+pip install -r requirements.txt
+
+# 4. Lancer l'infrastructure
+# Mode développement
+docker-compose -f docker-compose.dev.yml up -d
+# Mode production
+docker-compose -f docker-compose.prod.yml up -d
+
+# 5. Vérifier les services
 docker-compose ps
+
+# 6. Vérifier les logs
+docker-compose logs -f
 ```
+
+
 
 ### Accès aux Services
 
-| Service      | URL                   | Description                     |
-| ------------ | --------------------- | ------------------------------- |
-| API SIEM     | http://localhost:8080 | Gestion des logs et alertes     |
-| Threat Intel | http://localhost:8081 | Intelligence sur les menaces    |
-| SOAR         | http://localhost:8082 | Orchestration et automatisation |
-| Kibana       | http://localhost:5601 | Visualisation des logs          |
-| Grafana      | http://localhost:3000 | Dashboards                      |
-| Prometheus   | http://localhost:9090 | Métriques                       |
+| Service      | URL                   | Port     | Description                     |
+| ------------ | --------------------- | -------- | ------------------------------- |
+| API Gateway  | http://localhost:8000 | 8000     | Point d'entrée unique          |
+| SIEM API     | http://localhost:8080 | 8080     | Gestion des logs et alertes     |
+| Threat Intel | http://localhost:8081 | 8081     | Intelligence sur les menaces    |
+| SOAR Engine  | http://localhost:8082 | 8082     | Orchestration et automatisation |
+| ML Detector  | http://localhost:8083 | 8083     | Détection par IA               |
+| Kibana       | http://localhost:5601 | 5601     | Visualisation des logs          |
+| Grafana      | http://localhost:3000 | 3000     | Dashboards                      |
+| Prometheus   | http://localhost:9090 | 9090     | Métriques                       |
+| Dashboard    | http://localhost:3001 | 3001     | Interface web                   |
+
+### Comptes par défaut
+
+| Service      | Username | Password |
+| ------------ | -------- | -------- |
+| Grafana      | admin    | admin    |
+| Kibana       | admin    | changeme |
+| API Gateway  | admin    | changeme |
+
+**Important**: Changez les mots de passe par défaut en production!
 
 ---
 

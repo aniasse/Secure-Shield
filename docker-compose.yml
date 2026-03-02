@@ -63,7 +63,7 @@ services:
       - ES_NODE=http://elasticsearch:9200
       - REDIS_HOST=redis
       - REDIS_PORT=6379
-      - JWT_SECRET=dev-secret-change-in-prod
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - kafka
       - elasticsearch
@@ -80,6 +80,7 @@ services:
       - PORT=8081
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
 
@@ -95,6 +96,7 @@ services:
       - KAFKA_BROKER=kafka:9092
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - kafka
       - redis
@@ -111,6 +113,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
       - kafka
@@ -126,6 +129,7 @@ services:
       - PORT=8084
       - SANDBOX_TIMEOUT=300000
       - MAX_FILE_SIZE=52428800
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     volumes:
       - ./sandbox-data:/tmp/sandbox
 
@@ -141,6 +145,7 @@ services:
       - REDIS_HOST=redis
       - REDIS_PORT=6379
       - KAFKA_BROKER=kafka:9092
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
       - kafka
@@ -156,6 +161,7 @@ services:
       - PORT=8086
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
 
@@ -174,6 +180,7 @@ services:
       - LLM_PROVIDER=gemini
       - LLM_API_KEY=${LLM_API_KEY}
       - LLM_MODEL=gemini-flash-latest
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
 
@@ -188,6 +195,7 @@ services:
       - PORT=8091
       - REDIS_HOST=redis
       - REDIS_PORT=6379
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
 
@@ -204,6 +212,7 @@ services:
       - REDIS_PORT=6379
       - AUTO_BLOCK=true
       - THRESHOLD=70
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
     depends_on:
       - redis
 
@@ -220,6 +229,8 @@ services:
       - REDIS_PORT=6379
       - SCAN_INTERVAL=30000
       - AUTO_BLOCK=true
+      - THRESHOLD=70
+      - JWT_SECRET=${JWT_SECRET:-${JWT_SECRET_DEV:-dev-secret-change-in-prod}}
       - THRESHOLD=70
     depends_on:
       - redis
